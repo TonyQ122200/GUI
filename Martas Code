@@ -1,1 +1,96 @@
+class Graph_Widget(QGLWidget):
 
+    def __init__(self, parent):
+        QGLWidget.__init__(self, parent)
+        self.setMinimumSize(640, 480)
+
+    def vector(x, y, z):
+        vec = []
+
+        aux = (x ** 2) + (y ** 2) + (z ** 2)  # to obtain the magnitude of the resultant vector
+        res = round(math.sqrt(aux), 2)  # square root of that and round to 2 decimals
+
+        vec.append(res)  # append the number to be plotted
+
+        return vec
+
+    def live_plotter_accelerometer(t, x_a, y_a, z_a, line1, identifier='', pause_time=0.01):
+        # pause time controls how often information is updated
+
+        # a = vector(x_a,y_a,z_a)
+        if line1 == []:  # if array line 1 is empty then (or its an array)
+
+            plt.ion()  # make it live
+            fig = plt.figure(figsize=(10, 5))  # ser size if the plot
+            ax = fig.add_subplot(211)  # first graph going to be called ax
+            line1, = ax.plot(t, x_a, color='blue', alpha=1)
+
+            plt.axhline(98.68, color='red', linestyle='--')  # this creates a line for teh threshold value
+            plt.xlim([0, 100])  # on the example was set to 10 to be able to see example clear
+            plt.ylim([0, 10])  # set the limit of seconds that can be seen in one frame
+            plt.ylabel('G')
+            plt.xlabel('time')
+            plt.title('Accelerometer{}'.format(identifier))
+            plt.show()
+
+        line1.set_data(t, x_a)  # set the values that go into the array
+        plt.pause(pause_time)
+        return line1
+
+    def live_plotter_gyroscope(t, x, y, z, line2, identifier='', pause_time=0.01):
+        b = vector(x, y, z)
+
+        if line2 == []:
+            plt.ion()
+            fig = plt.figure(figsize=(10, 5))
+            ax2 = fig.add_subplot(212)
+            line2, = ax2.plot(t, b, color='green', alpha=1)
+
+            plt.axhline(5776.6, color='k', linestyle='--')
+            plt.xlim([0, 10])
+            plt.ylim([0, 10000])
+            plt.ylabel('w')
+            plt.xlabel('Time')
+            plt.title('Gyroscope{}'.format(identifier))
+            plt.show()
+
+        line2.set_data(t, b)
+        plt.pause(pause_time)
+        return line2
+
+    def start_live_plotting(helmet, x):
+
+        helmet.graph_data = x
+        if x == True:  # when the user presses start it will send a true statement.
+            accelerometer_thread = threading.thread(target=accelerometer_thread, args=(helmet,))
+            # Creates the actual thread
+            accelerometer_thread.start()  # sets it to start
+
+            gyroscope_thread = threading.thread(target=gyroscope_thread, arg=(helmet,))
+            gyroscope_thread.start()
+
+        return 0
+
+    def accelerometer_thread(helmet):  # t his will get the infromation that will be plotted
+        while helmet.graph_data == True:  # the loop will go until stop is pressed in the interface
+            data_tuple = helmet.graph_linear_q.get(True, 3)
+
+            t = data_tuple[0]  # time
+            x_a = data_tuple[1]  # x axis
+            y_a = data_tuple[2]  # y axis
+            z_a = data_tuple[3]  # z axis
+            line1 = []
+
+            live_plotter_accelerometer(t, x_a, y_a, z_a, line1)  # calls teh function with the new input
+
+    def gyroscope_thread(helmet):
+        while helmet.graph_data == True:  # same condition
+            data_tuple = helmet.graph_linear_q.get(True, 3)
+
+            t = data_tuple[0]  # time
+            x_g = data_tuple[4]  # x axis
+            y_g = data_tuple[5]  # y axis
+            z_g = data_tuple[6]  # z axis
+            line2 = []
+
+            live_plotter_gyroscope(t, x_g, y_g, z_g, line2)
