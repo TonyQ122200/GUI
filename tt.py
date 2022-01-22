@@ -17,6 +17,21 @@ from PyQt5.QtWidgets import (QWidget, QPushButton,
                              QHBoxLayout, QVBoxLayout, QApplication)
 from OpenGL.GL import *
 from OpenGL.GLU import *
+from marta import Graph_Widget
+from aidan import Helmet
+
+class Ui_Form(object):
+    def setupUi(self, Form):
+        helmet = Helmet("/dev/ttyUSB0", "helmet")
+        helmet.start()
+
+        Form.setObjectName("Form")
+        Form.resize(800, 600)
+        self.widget = Graph_Widget(Form) # glWidget(Form)
+        Graph_Widget.start_live_plotting(helmet, True)
+        mainLayout = QHBoxLayout()
+        mainLayout.addWidget(self.widget)
+        Form.setLayout(mainLayout)
 
 class glWidget(QGLWidget):
 
@@ -47,20 +62,9 @@ class glWidget(QGLWidget):
         gluPerspective(45.0,1.33,0.1, 100.0) 
         glMatrixMode(GL_MODELVIEW)
         
-class Ui_Form(object):
-    def setupUi(self, Form):
-        Form.setObjectName("Form")
-        Form.resize(800, 600)
-        self.widget = glWidget(Form)
-        mainLayout = QHBoxLayout()
-        mainLayout.addWidget(self.widget)
-        Form.setLayout(mainLayout)
 
 
     def retranslateUi(self, Form):
         _translate = QtCore.QCoreApplication.translate
         Form.setWindowTitle(_translate("Form", "Form"))
         self.label.setText(_translate("Form", "TextLabel"))
-
-
-
